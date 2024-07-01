@@ -26,21 +26,37 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  //Write your code here
-  return res.status(200).json(JSON.stringify(books));
+public_users.get('/',async function (req, res) {
+    //Write your code here
+    try {
+        const response = await new Promise((resolve, reject) => {
+            resolve(JSON.stringify(books));
+        });
+        res.status(200).json(response);
+
+    } catch (error) {
+        res.status(500).json({ error: 'Error listing books' });
+    }
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
+public_users.get('/isbn/:isbn',async function (req, res) {
   //Write your code here
   const isbn = req.params.isbn;
 
-  res.send(books[isbn])
+    try {
+        const response = await new Promise((resolve, reject) => {
+            resolve(books[isbn]);
+        });
+        res.send(response)
+
+    } catch (error) {
+        res.status(500).json({ error: 'Error getting book detail' });
+    }
  });
   
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
+public_users.get('/author/:author',async function (req, res) {
   //Write your code here
   const author = req.params.author;
   const response = [];
@@ -49,42 +65,65 @@ public_users.get('/author/:author',function (req, res) {
         res.status(400).send("author is null or undefined");
     }
 
-    for (let id in books) {
-        if (books[id].author.toLowerCase() === author.toLowerCase()) {
-            response.push(books[id]);
+
+    try {
+        const response = await new Promise((resolve, reject) => {
+            const result = [];
+            for (let id in books) {
+                if (books[id].author.toLowerCase() === author.toLowerCase()) {
+                    result.push(books[id]);
+                }
+            }
+            if (result.length > 0) {
+                resolve(result);
+            }
+        });
+
+
+        if (!isNil(response) && response.length > 0) {
+            res.send(response);
+    
+        } else {
+            res.status(404).send("Author not found");
         }
-    }
 
-    if (!isNil(response) && response.length > 0) {
-        res.send(response);
-
-    } else {
-        res.status(404).send("Author not found");
+    } catch (error) {
+        res.status(500).json({ error: 'Error getting book detail' });
     }
 
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
+public_users.get('/title/:title',async function (req, res) {
   //Write your code here
   const title = req.params.title;
-  const response = [];
 
     if(isNil(title)) {
         res.status(400).send("title is null or undefined");
     }
+    try {
+        const response = await new Promise((resolve, reject) => {
+            const result = [];
+            for (let id in books) {
+                if (books[id].title.toLowerCase() === title.toLowerCase()) {
+                    result.push(books[id]);
+                }
+            }
+            
+            if (result.length > 0) {
+                resolve(result);
+            }
+        });
 
-    for (let id in books) {
-        if (books[id].title.toLowerCase() === title.toLowerCase()) {
-            response.push(books[id]);
+        if (!isNil(response) && response.length > 0) {
+            res.send(response);
+
+        } else {
+            res.status(404).send("Title not found");
         }
-    }
-
-    if (!isNil(response) && response.length > 0) {
-        res.send(response);
-
-    } else {
-        res.status(404).send("Title not found");
+        
+    } catch (error) {
+        res.status(500).json({ error: 'Error getting book detail' });
     }
 });
 
